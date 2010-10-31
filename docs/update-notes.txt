@@ -1,0 +1,6 @@
+When updating ports I'd a problem with openssl libs. To fix it:
+ sudo ln  /Library/Application\ Support/Titanium/modules/osx/php/1.0.0/libssl.0.9.8.dylib libssl.0.9.8.dylib
+
+Do the same link with the libcrypto.dylib lib.
+
+

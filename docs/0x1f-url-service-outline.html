@@ -1,0 +1,106 @@
+<html>
+<head><title>0x1F URL Service Outline</title></head>
+<body>
+<h1>0x1F URL Service Outline</h1>
+<h2>Introduction</h2>
+<p>This document gives a brief outline of the 0x1F URL shortening &amp; redirect service.</p>
+<p>
+The service has two main functions:
+<ol>
+<li>To replace any URL which is to be encoded in a QR tag with a shorter, constant length URL, which can be encoded in a low resolution tag.</li>
+<li>To redirect requests for a shortened URL to the original, full length URL, recording and tracking all requests as they are made.</li>
+</ol>
+</p>
+<p>
+An example of a shortened URL is:
+<pre>http://0x1f.ie/H83if</pre>
+The service is hosted at the domain '0x1f.ie'.
+The URL path is a 5-digit long, base-62 encoded number using the character set [a-zA-Z0-9].
+This scheme allows a total of 62^5 unique URLs to be hosted by the service.
+The total length of the shortened URL is 20 characters.
+This allows the URL to be encoded in the lowest resolution QR tag possible.
+</p>
+<p>
+The service will be implemented using procjs backed by a couchdb database.
+Initially, procjs will only be required for the URL redirection part of the service.
+Creation and update of shortened URLs will be handled entirely by couchdb.
+</p>
+<h2>Creating shortened URLs</h2>
+<p>
+A shortened URL is created by inserting a document into the couchdb database.
+Each document has the following format:
+<pre>
+    {
+        "url":"http://innerfunction.com/wp/whelans/?p=14"
+        "inactive":false
+    }
+</pre>
+Where the 'url' property is the full URL which the service will redirect to.
+The 'inactive' property is a flag specifiying whether the URL is in active use.
+If this property is true then the service will not redirect to the URL when requested, returning a 404 error instead.
+The property has a default value of 'false'.
+</p>
+<p>The document ID is the 5 digit base-62 number which is represented in the shortened URL's path.
+</p>
+<p>
+The full URL associated with a shortened URL can be rewritten at any time by updating the document.
+This allows a QR tag encoding a shortened URL to be reused multiple times.
+</p>
+<p>
+This part of the service is hosted entirely on couchdb using its HTTP API.
+The service will use standard couchdb access controls to prevent unauthorized update of the system.
+(See <a href="http://wiki.apache.org/couchdb/Technical%20Overview#Security_and_Validation">http://wiki.apache.org/couchdb/Technical%20Overview#Security_and_Validation</a>).
+The couchdb API is hosted at http://admin.0x1f.ie/ so that it won't overlap with the URL redirection service (see next).
+</p>
+<h2>URL redirection</h2>
+<p>
+All HTTP requests to the domain 0x1f.ie are treated as redirection requests and handled as follows:
+<ol>
+<li>If the request is anything other than a GET request then a 501 Not Implemented error is returned.
+<small>(TODO: Should also handle HEAD requests).</small>
+</li>
+<li>The request path is extracted from the request.</li>
+<li>The document whose ID matches the request path is read from the couchdb instance.</li>
+<li>If no document is found then a 404 error is returned.</li>
+<li>If a document is found but the URL is inactive then a 404 error is returned.</li>
+<li>Else a 302 redirection response is returned using the URL in the document.</li>
+</ol>
+<h3>Logging</h3>
+<p>
+All requests are logged.
+Each log entry is a space separated list of fields terminated by a newline character.
+Each log entry has the following standard fields:
+<ol>
+<li>Timestamp: In yyyymmddhhmmss.s format.</li>
+<li>The HTTP client's IP address.</li>
+<li>The client tracking ID (see below).</li>
+<li>The client's User Agent string. The string is URL encoded so than no spaces appear within it.</li>
+<li>The request path.</li>
+<li>The response code. One of:
+    <ul>
+    <li><b>OK</b>: A redirect was returned to the client.</li>
+    <li><b>NF</b>: The requested path did not match a URL document, a 404 was returned.</li>
+    <li><b>IA</b>: The URL document was inactive, a 404 was returned.</li>
+    </ul>
+</ol>
+The following field is included in the log entry when the response code is OK:
+<ul>
+<li>The redirect URL (taken from the URL document).</li>
+</ul>
+</p>
+<h3>Tracking</h3>
+<p>
+All clients are tracked using cookies.
+Each service response includes a cookie containing a unique identifier.
+The very first request to the service from any client won't contain a tracking cookie.
+The service will then generate a unique identifier by concatentating the following:
+<ul>
+<li>The current time in milliseconds past epoch.</li>
+<li>A hash of the string formed by concatentating the client's IP and UA string.</li>
+</ul>
+This unique identifier will then be returned to the client in a cookie contained in the HTTP response.
+Subsequent requests from the same client will contain the tracking cookie.
+Subsequent responses will echo the tracking cookie back to the client.
+</p>
+</body>
+</html>

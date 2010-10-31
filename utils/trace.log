@@ -1,0 +1,22 @@
+== Info: About to connect() to 127.0.0.1 port 3000 (#0)
+== Info:   Trying 127.0.0.1... == Info: connected
+== Info: Connected to 127.0.0.1 (127.0.0.1) port 3000 (#0)
+=> Send header, 216 bytes (0xd8)
+0000: 50 4f 53 54 20 2f 73 68 6f 72 74 65 72 20 48 54 POST /shorter HT
+0010: 54 50 2f 31 2e 31 0d 0a 55 73 65 72 2d 41 67 65 TP/1.1..User-Age
+0020: 6e 74 3a 20 63 75 72 6c 2f 37 2e 32 31 2e 32 20 nt: curl/7.21.2 
+0030: 28 69 33 38 36 2d 61 70 70 6c 65 2d 64 61 72 77 (i386-apple-darw
+0040: 69 6e 39 2e 38 2e 30 29 20 6c 69 62 63 75 72 6c in9.8.0) libcurl
+0050: 2f 37 2e 32 31 2e 32 20 4f 70 65 6e 53 53 4c 2f /7.21.2 OpenSSL/
+0060: 31 2e 30 2e 30 61 20 7a 6c 69 62 2f 31 2e 32 2e 1.0.0a zlib/1.2.
+0070: 35 20 6c 69 62 69 64 6e 2f 31 2e 31 39 0d 0a 48 5 libidn/1.19..H
+0080: 6f 73 74 3a 20 31 32 37 2e 30 2e 30 2e 31 3a 33 ost: 127.0.0.1:3
+0090: 30 30 30 0d 0a 41 63 63 65 70 74 3a 20 2a 2f 2a 000..Accept: */*
+00a0: 0d 0a 43 6f 6e 74 65 6e 74 2d 54 79 70 65 3a 20 ..Content-Type: 
+00b0: 61 70 70 6c 69 63 61 74 69 6f 6e 2f 6a 73 6f 6e application/json
+00c0: 0d 0a 43 6f 6e 74 65 6e 74 2d 4c 65 6e 67 74 68 ..Content-Length
+00d0: 3a 20 34 36 0d 0a 0d 0a                         : 46....
+=> Send data, 46 bytes (0x2e)
+0000: 7b 22 75 72 6c 22 3a 22 68 74 74 70 3a 2f 2f 73 {"url":"http://s
+0010: 68 6f 72 74 65 72 2e 69 73 22 2c 22 69 6e 61 63 horter.is","inac
+0020: 74 69 76 65 22 3a 22 66 61 6c 73 65 22 7d       tive":"false"}
