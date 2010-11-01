@@ -35,9 +35,9 @@ var sys = require('sys'),
     request = require('request');
 
 // Configuration : replace HOSTNAME!
-var HOSTNAME = 'localhost', HOSTPORT = '3000', 
-    HOSTURL = 'http://'+HOSTNAME+':'+ HOSTPORT;
-var DBHOST = HOSTNAME, DBPORT = 5984, DBNAME = 'urldb',
+var HOSTNAME = '0x1f.ie', HOSTPORT = '', // User ':80'. Defaults fot port 80
+    HOSTURL = 'http://'+HOSTNAME+ HOSTPORT;
+var DBHOST = 'localhost', DBPORT = 5984, DBNAME = 'urldb',
     DBURL = 'http://'+DBHOST+':'+DBPORT+'/'+DBNAME+'/';
 
 // couchdb connection
@@ -205,7 +205,7 @@ function updateURL(req, res){
 // Display qrtag + link to shortUrl
 function displayLinkDetails(req, res, id, image){
     // Find id for that url, show id + qrtag
-    var link = HOSTNAME+':'+HOSTPORT+'/'+id;
+    var link = HOSTNAME+HOSTPORT+'/'+id;
     res.send(
         '<p><img src="' + image + '"></a></p>' +
         '<p><a href="http://'+link+'">' + link + '</a></p>');    
@@ -326,16 +326,20 @@ app.get('/qrtag/:id/:attachmentId.:extension', function(req, res){
     }
 });
 
+app.get('/', function(req, res){
+    res.redirect('http://0x1f.ie/web/');
+});
 // GET /:id . Look for the url with that id and redirect if found.
 app.get('/:id', function(req, res){
+    //sys.puts(req.param.id);
     var id = req.params.id;
     var resCode = "NF";
-   
+      
     // Service designed to work with nginx acting as a proxy
     // Get ip from headers in forwarded nging packets
     var ipAddress = null;
     try{
-        ipAddress = req.headers['x-forwarded-for'];
+        ipAddress = req.headers['X-forwarded-For'];
     }catch(err){
         ipAddress = req.connection.remoteAddress;
     }
