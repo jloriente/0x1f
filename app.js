@@ -34,7 +34,9 @@ var sys = require('sys'),
     JooseDep = require('joosex-namespace-depended'), H = require('hash')
     request = require('request');
 
-var HOSTNAME = 'localhost', HOSTPORT = '3000';
+// Configuration : replace HOSTNAME!
+var HOSTNAME = 'localhost', HOSTPORT = '3000', 
+    HOSTURL = 'http://'+HOSTNAME+':'+ HOSTPORT;
 var DBHOST = HOSTNAME, DBPORT = 5984, DBNAME = 'urldb',
     DBURL = 'http://'+DBHOST+':'+DBPORT+'/'+DBNAME+'/';
 
@@ -127,13 +129,15 @@ function addURL(req, res, callback){
 
             // callback function receives an unique id and post to database 
             function callBack(id){
-                // Auth
+
+                // TODO : Testing authentication...
                 //var userPass = 'admin:pass';
-                var userPass = 'javier:pass';
-                var b = 'Basic ' + new Buffer(userPass, 'ascii').toString('base64'); 
-                sys.puts('Userpass : ' + userPass + ' base64 : ' + b);
+                //var userPass = 'javier:pass';
+                //var b = 'Basic ' + new Buffer(userPass, 'ascii').toString('base64'); 
+                //sys.puts('Userpass : ' + userPass + ' base64 : ' + b);
                 //sys.puts('Base64 userpass : ' + b);
                 sys.puts('Generated new unique id  : ' + id + ' for url ' + req.body.url );
+                
                 var options = {
                     uri : DBURL+id,
                     method : 'PUT',
@@ -219,7 +223,7 @@ function displayQRtag(req, res){
 function displayForm(req, res){
     res.sendHeader(200, {"Content-Type": "text/html"});
     res.write(
-        '<form action="http://localhost:3000/admin" method="post" enctype="multipart/form-data">'+
+        '<form action="'+ HOSTURL +'/admin" method="post" enctype="multipart/form-data">'+
         '<input type="text" name="url" />'+
         '<input type="checkbox" name="inactive" value="true">inactive</input>'+
         '<input type="submit" value="submit" />'+
@@ -252,15 +256,12 @@ app.post('/admin', function(req, res){
                     'url' : fields.url,
                     'inactive' : fields.inactive ? 'true' : 'false' | "false"
                 }
-                sys.puts('URL COOO' + sys.inspect(URL));
-                
                 req.body = URL;
                 addURL(req, res, function(id){
                     // callback takes a body or error ob
-                    sys.puts('callback ' + id);
                     //res.send('ahora');
                     var redirectUrl = '/qrtag/'+id+'/qr-img.png';
-                    sys.puts('redirecting ... ' + redirectUrl); 
+                    //sys.puts('redirecting ... ' + redirectUrl); 
                     res.redirect('/qrtag/'+id+'/qr-img.png',302);
                 });
                 // Send html content short url + qrtag.
@@ -274,7 +275,6 @@ app.post('/admin', function(req, res){
 });
 
 // Get qrtag image for a given id and attachmentId.
-//  
 app.get('/qrtag/:id/:attachmentId.:extension', function(req, res){
     if (req.params.id && req.params.attachmentId){
         var id = req.params.id;
@@ -289,7 +289,6 @@ app.get('/qrtag/:id/:attachmentId.:extension', function(req, res){
             }else{
                 try{
                     var ob = eval( '(' + r.toString() + ')'); // Throws ex if attachment found
-                    
                     // If not found then read url values and generate new qrtag from ws.
                     db.getDoc(id, function(err, doc){
                         if (err){ 
@@ -299,16 +298,14 @@ app.get('/qrtag/:id/:attachmentId.:extension', function(req, res){
                                 res.send('Sorry, cant find that', 404);
                             }else{
                                 sys.puts(sys.inspect(err.reason));
-                                //sys.send(sys.inspect(err.reason));
-                                //throw err; 
+                                sys.send(sys.inspect(err.reason));
                             }
                         }else{
-                            sys.puts('DOC Coooo ' + sys.inspect(doc));
                             if (!doc.url){
                                 res.send({'error' : 'Url not included in doc'})
                             }else{
-                                var tagUrl = qrcode(doc.url);
-                                sys.puts('The new tag url is ' + tagUrl);
+                                // TODO : Check if default qrtag already exist, then dont fetch a new one.
+                                var tagUrl = qrcode(HOSTURL+'/'+id);
                                 // Get new qrtag from ws, fetch and store in db, show it. Default qr-img.png
                                 fetchAndSaveImage(tagUrl, doc, req, res);
                             }
@@ -331,7 +328,6 @@ app.get('/qrtag/:id/:attachmentId.:extension', function(req, res){
 
 // GET /:id . Look for the url with that id and redirect if found.
 app.get('/:id', function(req, res){
-    sys.puts('Get id');
     var id = req.params.id;
     var resCode = "NF";
    
@@ -351,7 +347,6 @@ app.get('/:id', function(req, res){
     //  create new tracking id if not cookie recived (new connection).
     var cookie = req.cookies['0x1f']; //sys.puts('COOKIE ' + sys.inspect(cookie));
     if (cookie != undefined) {
-        sys.puts('cookie received');
         var trackingId = cookie;    
     }else{
         sys.puts('New client');
@@ -364,8 +359,8 @@ app.get('/:id', function(req, res){
    
 
     db.getDoc(id, function(err, doc){
-        sys.puts(sys.inspect(err));
-        sys.puts(sys.inspect(doc));
+        //sys.puts(sys.inspect(err));
+        //sys.puts(sys.inspect(doc));
         if (err){ 
            if (err.error == 'not_found'){
                 resCode = "NF";
@@ -377,8 +372,6 @@ app.get('/:id', function(req, res){
                 //throw new Error(err); 
             }
         }else{
-            sys.puts(' Here we go ' + sys.inspect(doc));
-            
             redirectCallback(doc.url, doc.inactive);
         }
     });
@@ -415,8 +408,8 @@ app.listen(3000);
 //      unique id has been found.
 function getUniqueId(callback){
     var shortId = getRandomShortId();
-    callback(shortId);
-    /*
+    // TODO : Authentication required here first time
+    //callback(shortId);
     db.getDoc(shortId, function(err, doc){
         if (err) {
             if (err.reason == 'missing') return callback(shortId)
@@ -425,7 +418,7 @@ function getUniqueId(callback){
             sys.puts('Generated id : ' + shortId + 'is already in use, regenerating id.');
             getUniqueId(callback);
         }
-    });*/
+    });
 }
 
 // Returns a random base-64 id with 5 characters.
@@ -474,22 +467,19 @@ function fetchAndSaveImage(tagUrl, doc, req, res){
             res.send(sys.inspect(err));
         }else{
             if (response.statusCode=200){
-                sys.puts('pass');
                 var image = new Buffer(bufferList.toString(), 'binary').toString('base64');
-                sys.puts( 'THE ID TO STORE ATT : ' + req.params.id);
                 // Store as doc attachment
+                //sys.puts('New qrtag obtained from web service.');
                 saveImageAsAttachment(req, res, doc, image); 
             }
         }       
     });   
 }
 
-// Save a image as a doc attachment.
-// Send img in src.
-// Attachment name defaults to qr-img.png
+// Save a image as a doc attachment. Default attachment name: 'qr-img.png'
+// If ok sends html with a img element containing the img.
 function saveImageAsAttachment(req, res, doc, image){
     var attachName = 'qr-img.png';
-    sys.puts(sys.inspect(req));
     var urlData = {
         '_id' :  req.params.id,
         '_rev' : doc['_rev'],
@@ -519,18 +509,22 @@ function saveImageAsAttachment(req, res, doc, image){
             sys.puts(sys.inspect(err));   
             req.send(sys.inspect(err));   
         }else{
-            sys.puts('New qr tag Attachment has been added to ' + req.params.id + ' atachName:' + attachName  );
-            sys.puts(sys.inspect(body));
+            //sys.puts('New qr tag Attachment has been added to ' + req.params.id + ' atachName:' + attachName  );
             //res.send(body);
             db.getAttachment(req.params.id, 'qr-img.png', function(err, r){
-                if (err) throw new Error(sys.inspect(err));
-                // Prepend the base64 data so it can be easily used as data url for img source.
-                var data_uri_prefix = "data:" + 'image/png' + ";base64,";
-                var image = new Buffer(r.toString(), 'binary').toString('base64'); 
-                image = data_uri_prefix + image;
-                //res.headers['Content-Type'] = 'image/png';
-                //res.send('<img src="'+image+'"/>');
-                displayLinkDetails(req, res, req.params.id, image);
+                if (err) {
+                    sys.puts(sys.inspect(err));
+                    res.send(sys.inspect(err));
+                }else{
+                    sys.puts('New image attached to doc id :  ' + req.params.id + ' Attachment id : qr-img.png');
+                    // Prepend the base64 data so it can be easily used as data url for img source.
+                    var data_uri_prefix = "data:" + 'image/png' + ";base64,";
+                    var image = new Buffer(r.toString(), 'binary').toString('base64'); 
+                    image = data_uri_prefix + image;
+                    //res.headers['Content-Type'] = 'image/png';
+                    //res.send('<img src="'+image+'"/>');
+                    displayLinkDetails(req, res, req.params.id, image);
+                }
             });
         }
     });
@@ -591,9 +585,9 @@ function redirectToAdd(req, res){
      sys.puts('redirecting posting  to /add');
     //urlData['_id'] = id
     var urlData = req.body;
-    sys.puts(sys.inspect(urlData));
+    //sys.puts(sys.inspect(urlData));
     var options = {
-        uri : 'http://localhost:3000/add',
+        uri : HOSTURL + '/add',
         method : 'POST',
         headers : {
             'content-type'  : 'application/json', 
@@ -606,7 +600,7 @@ function redirectToAdd(req, res){
     request(options, function(err, response, body){
         if (err) sys.puts(err); 
             else{
-                sys.puts(response);
+                //sys.puts(response);
                 sys.puts(sys.inspect(body));
                 res.send(body);
         }
