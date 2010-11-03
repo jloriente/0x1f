@@ -1,7 +1,7 @@
 <h1>0n1f Url shortening service</h2>
 
 <h2>Server setup</h2>
-<p>The 0n1f service is running in an Ubuntu machine. It requires nodejs and couchdb.</p>
+<p>The 0n1f service is running in an Ubuntu machine. It requires nodejs v0.2.4 and couchdb running in the host</p>
 <p>Run <code>apt-get install couchdb</code> to install couchdb<p>
 <p>Install nodejs. Run <code>git clone git://github.com/ry/node.git</code> and then run
 <code>./configure && make && make install</code><p>
@@ -20,6 +20,14 @@ to use npm. To install npm use : curl http://npmjs.org/install.sh | sh
     <li>npm install bufferlist</li>
 </ul>
 </p>
+
+<h2>Nginx configuration</h2>
+<p>Nginx is installed in the server because the servers hosted also a number of websites. Node is accessed throught ngix that 
+will act as a proxy to the 0x1f nodejs service.</p>
+<p>Main domian setup in nginx is 0x1f.ie which proxies all the communication with nodejs. There is also a subdomain 
+admin.0x1f.ie to allow admin operation like add new post, generate qrtags.</p>
+<p>Coachdb and futon can be access in the admin subdomine at port 5000. e.x: Access futon at: http://admin.0x1f.ie:5000/utils</p>
+<p>0x1f.ie static pages are at : /var/www/0x1f.ie. admin.0x1f.ie are at : /var/www/admin.0x1f.ie</p> 
 
 <h2>REST Interface</h2>
 <ul>

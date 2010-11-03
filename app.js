@@ -215,8 +215,8 @@ function displayQRtag(req, res){
     var qrurl = qrcode(url);
     sys.puts('QR tag url : ' + qrurl);
     res.send(
-        '<p><img src="' + qrcode(url) + '"></a></p>' +
-        '<p>Short link :  http://0x1f.com/' + shortId + '</p>');
+        '<p align="center"><img src="' + qrcode(url) + '"></a></p>' +
+        '<p align="center">Short link :  http://0x1f.com/' + shortId + '</p>');
      // Get png qr tag from webservice
 };
 
