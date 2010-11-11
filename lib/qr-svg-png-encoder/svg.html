@@ -1,0 +1,76 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script src="bitarray.js"></script>
+<script src="bitmatrix.js"></script>
+<script src="blockpair.js"></script>
+<script src="bytematrix.js"></script>
+<script src="characterseteci.js"></script>
+<script src="encodehinttype.js"></script>
+<script src="encoder.js"></script>
+<script src="errorcorrectionlevel.js"></script>
+<script src="formatinformation.js"></script>
+<script src="maskutil.js"></script>
+<script src="matrixutil.js"></script>
+<script src="mode.js"></script>
+<script src="qrcode.js"></script>
+<script src="version.js"></script>
+<script src="svg-encoder.js"></script>
+<script src="png-encoder.js"></script>
+<script>
+    String.prototype.getBytes = function(encoding) {
+        if( encoding != 'ISO-8859-1' ) {
+            throw new Error('Unsupported character encoding: '+encoding);
+        }
+        var bytes = new Array(this.length);
+        for( var i = 0; i < this.length; i++ ) {
+            bytes[i] = this.charCodeAt(i);
+        }
+        return bytes;
+    }
+    function encode() {
+        var r = Number( document.getElementById('roundness').value );
+        if( !(r >= 0 && r <= 1) ) {
+            alert('Roundness must be a value between 0 and 1.');
+            return;
+        }
+        var os = Number( document.getElementById('oversize').value );
+        var black = document.getElementById('blackcolour').value.split(',');
+        var white = document.getElementById('whitecolour').value;
+        var contents = document.getElementById('content').value;
+        // Generate tag
+        var qrcode = new QRCode();
+        var encoder = new Encoder();
+        encoder.encode(contents, ErrorCorrectionLevel.L, false, qrcode);
+        var svg = svgEncode( qrcode, 600, r, os, black, white );
+        document.getElementById('output').value = svg;
+        
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString( svg, 'text/xml' );
+        var tag = document.getElementById('tag');
+        while( tag.firstChild ) tag.removeChild( tag.firstChild );
+        tag.appendChild( xmlDoc.documentElement );
+        if( console ) {
+            // Print sample 'png' output to  console - shows a pattern of x's and spaces corresponding to the shaded
+            // pixels which would appear within a PNG
+            console.log( pngEncode( qrcode.getMatrix().toStringArray(), 100, 'x', ' ', true ) );
+        }
+    }
+</script>
+</head>
+<body>
+    <form>
+        <input id="content" size="50" value="http://0x1f.ie/12345"/>
+        <input id="roundness" value="0.3"/>
+        <input id="oversize" value="-0.1"/>
+        <input id="blackcolour" value="#004400,#225522,#446644"/>
+        <input id="whitecolour" value="#CCCC00"/>
+        <input type="button" value="encode" onclick="encode()"/>
+        <br/>
+    </form>
+    <div id="tag" style="margin-bottom: 1em;">
+    </div>
+    <form>
+        <textarea id="output" style="width: 100%" rows="10"></textarea>
+    </form>
+</body>
+</html>

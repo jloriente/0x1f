@@ -1,0 +1,13 @@
+#TODO 
+
+- Admin log
+* Download.
+* Separate db for tagTypes
+- Add 'http' when required.
+- url encode ?url= 
+* Add sizes to db
+- Authentications
+- Add JSON, remove eval
+- Clean hack
+- urlencode/decode
+* error pages
