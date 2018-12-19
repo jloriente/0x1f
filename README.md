@@ -1,5 +1,7 @@
 <h1>0x1f.ie service</h2>
 
+A URL shortening and QR generator service developed with Node.js.
+
 <h2>Introduction</h2>
 The 0x1f service is composed by two nodejs script : 0x1f and admin.0x1f. The first one is in charge of url 
 redirectioning based on short url. The second provide a restfull interface to perform operation like adding a 
